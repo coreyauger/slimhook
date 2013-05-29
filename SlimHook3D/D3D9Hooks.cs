@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Text;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SlimDX.Direct3D9;
 using System.Drawing;
@@ -32,6 +33,9 @@ namespace SlimHook3D
 
         Rectangle _Rect = new Rectangle();
 
+        private byte[] _map = new byte[256];
+        private byte posterizationInterval = 64;
+
 
         /// <summary>
         /// Constructor
@@ -39,7 +43,18 @@ namespace SlimHook3D
         public D3D9Hooks()    
         {
             _instance = this;
+            // calculate posterization offset
+            int posterizationOffset = 0;
+
+
+            // calculate mapping array            
+            for (int i = 0; i < 256; i++)
+            {
+                _map[i] = (byte)Math.Min(255, (i / posterizationInterval) * posterizationInterval + posterizationOffset);
+            }
         }
+
+        
 
         public int Direct3D9Device_EndScene(IntPtr devicePtr)
         {
@@ -82,15 +97,10 @@ namespace SlimHook3D
                           if (k < 0) break;
                           for (int j = 0; j < width; j++)
                           {
-                              byte r = pSrcRow[i * iSrcPitch + j * 4];
-                              byte g = pSrcRow[i * iSrcPitch + j * 4 + 1];
-                              byte b = pSrcRow[i * iSrcPitch + j * 4 + 2];
-
-                              byte gs = (byte)((r + g + b) / 3);
-
-                              pSrcRow[i * iSrcPitch + j * 4] = gs;
-                              pSrcRow[i * iSrcPitch + j * 4 + 1] = gs;
-                              pSrcRow[i * iSrcPitch + j * 4 + 2] = gs;
+                              // toon shade the game pixels here..
+                              pSrcRow[i * iSrcPitch + j * 4] = _map[(int)pSrcRow[i * iSrcPitch + j * 4]];
+                              pSrcRow[i * iSrcPitch + j * 4+1] = _map[(int)pSrcRow[i * iSrcPitch + j * 4+1]];
+                              pSrcRow[i * iSrcPitch + j * 4+2] = _map[(int)pSrcRow[i * iSrcPitch + j * 4+2]];
                           }
                           
                       }
