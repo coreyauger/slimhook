@@ -1,0 +1,7 @@
+LIBRARY         inject.dll
+EXPORTS
+			DllMain					PRIVATE
+            HookD3d9				PRIVATE
+            Inject					PRIVATE
+			EndSceneDotNet			PRIVATE
+			PresentD3D11DotNet		PRIVATE
