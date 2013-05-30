@@ -28,3 +28,62 @@ This is the code we want to execute in the targeted applications memory space.  
 * __WinHookApp__ (C# ,net)
 Simple WinForm application that allow you to put in the process ID of the target process.  This will then start the dll injection process.
 
+## How it works
+
+The WinHookApp includes “System.Runtime.InteropServices” to load the symbols from our inject.dll.  This can be seen with the following code
+
+    [DllImport("inject.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
+    internal static extern int Inject(int pid, StringBuilder amsBase);
+
+Here we are loading the function that takes to parameters.  The PID of the process we want to inject and the assembly base for the .net assembly that we want to load.
+
+Once the inject function is called
+    __declspec(dllexport) int WINAPI Inject(int pid, wchar_t* asemblyBase)
+
+We start the process of DLL injection.  We intend to inject the same dll we are executing from, namely inject.dll.
+
+We start by getting a handle to the kernel32 lib
+    
+    HMODULE hKernel32 = ::GetModuleHandle(L"Kernel32");
+  
+Next we call OpenProcess on the process we are trying to inject
+
+    HANDLE hProcess = ::OpenProcess( PROCESS_ALL_ACCESS,FALSE, pid );
+
+Next we allocate memory inside that process with enouch room to hold the path to this library
+
+    pLibRemote = ::VirtualAllocEx( hProcess, NULL, sizeof(szLibPath), MEM_COMMIT, PAGE_READWRITE );
+    
+Now we write the path to this lib in the memory we just allocated.
+
+    ::WriteProcessMemory( hProcess, pLibRemote, (void*)szLibPath, sizeof(szLibPath), NULL );
+    
+From here we create a remote thread that will call "LoadLibraryA" passing it the location of the path we just wrote
+
+    hThread = ::CreateRemoteThread( hProcess, NULL, 0,(LPTHREAD_START_ROUTINE) ::GetProcAddress( hKernel32,"LoadLibraryA" ),pLibRemote, 0, NULL );
+    
+We now should have this dll loaded into the remote process.  The next thing we need to do is call a method in our dll.  In this case we want to call "HookD3d9".  We first get the address of the function.
+
+    FARPROC hookProc = ::GetProcAddress( hLoaded,"HookD3d9" );
+    
+Now we load the parameters to the function in the same manore that we did before.  This parameter will be the base path for the .net dll asembly.
+
+    ::WriteProcessMemory( hProcess, pLibRemote, (void*)asemblyBase, sizeof(szLibPath), NULL );
+    
+We now calculate the offset to our function "HookD3d9" and call the function with passing in the parameter.
+
+    DWORD offset = (char*)hookProc - (char*)hLoaded;
+    myfile<< std::hex << "Offset: " << offset <<std::endl;
+
+	  // Call the real action now that we are loaded.  We can not do anything interesting from the dllMain so we need another exprot to call
+	  DWORD entry = (DWORD)hLibModule+offset;
+	  myfile<<"Create Remote Thread 2 at entry: "<< std::hex << entry  <<std::endl;
+	  HANDLE hThread2 = ::CreateRemoteThread( hProcess, NULL, 0,(LPTHREAD_START_ROUTINE)entry, pLibRemote, 0, NULL );
+    
+We now will be executing "HookD3d9" inside of the other process.
+
+## Hooking the d3d9 EndScene function with our own.
+
+//TODO:
+
+
