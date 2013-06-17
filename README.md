@@ -82,8 +82,8 @@ We now calculate the offset to our function "HookD3d9" and call the function wit
     
 We now will be executing "HookD3d9" inside of the other process.
 
-## Hooking the d3d9 EndScene function with our own.
+## Loading and running the .NET runtime
 
-//TODO:
+Most of this can be obtained from just looking at the code... but if there is any interest in this let me know and I will finish this doc ;)
 
 
