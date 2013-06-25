@@ -1,5 +1,4 @@
 
-
 #pragma region Includes and Imports
 #include "stdafx.h"
 #include <windows.h>
@@ -38,12 +37,12 @@ using namespace mscorlib;
 //   and print the result too.
 //
 //   PARAMETERS:
-//   * pszVersion - The desired DOTNETFX version, in the format ¡°vX.X.XXXXX¡±. 
-//     The parameter must not be NULL. It¡¯s important to note that this 
+//   * pszVersion - The desired DOTNETFX version, in the format ï¿½ï¿½vX.X.XXXXXï¿½ï¿½. 
+//     The parameter must not be NULL. Itï¿½ï¿½s important to note that this 
 //     parameter should match exactly the directory names for each version of
 //     the framework, under C:\Windows\Microsoft.NET\Framework[64]. The 
 //     current possible values are "v1.0.3705", "v1.1.4322", "v2.0.50727" and 
-//     "v4.0.30319". Also, note that the ¡°v¡± prefix is mandatory.
+//     "v4.0.30319". Also, note that the ï¿½ï¿½vï¿½ï¿½ prefix is mandatory.
 //   * pszAssemblyName - The display name of the assembly to be loaded, such 
 //     as "CSClassLibrary". The ".DLL" file extension is not appended.
 //   * pszClassName - The name of the Type that defines the method to invoke.
@@ -72,7 +71,6 @@ HRESULT slimhook::HostedDotNetRuntime::RuntimeHostV4(PCWSTR pszVersion, PCWSTR p
     // The .NET class to instantiate.
     bstr_t bstrClassName(pszClassName);
     
-    variant_t vtObject;
     variant_t vtEmpty;
 
     
@@ -217,7 +215,7 @@ HRESULT slimhook::HostedDotNetRuntime::RuntimeHostV4(PCWSTR pszVersion, PCWSTR p
     }
 	
 	FILE_LOG(logINFO) << "CreateInstance " << bstrClassName;
-    hr = _spAssembly->CreateInstance(bstrClassName, &vtObject);
+    hr = _spAssembly->CreateInstance(bstrClassName, &_vtObject);
     if (FAILED(hr)){
 		FILE_LOG(logERROR) << "Assembly::CreateInstance of className " << bstrClassName << " failed w/hr 0x" << std::hex <<  hr;
 		CleanUp();
@@ -242,7 +240,7 @@ HRESULT slimhook::HostedDotNetRuntime::RuntimeHostV4(PCWSTR pszVersion, PCWSTR p
 	FILE_LOG(logINFO) << "InvokeMember_3 " << bstr_t(psaMethodArgs);
     hr = _spType->InvokeMember_3(bstrMethodName, static_cast<BindingFlags>(
         BindingFlags_InvokeMethod | BindingFlags_Instance | BindingFlags_Public),
-        NULL, vtObject, psaMethodArgs, &vtStringRet);
+        NULL, _vtObject, psaMethodArgs, &vtStringRet);
     if (FAILED(hr)){
 		FILE_LOG(logERROR) << "Failed to invoke " << bstrMethodName <<" w/hr 0x" << std::hex <<  hr;
 		CleanUp();
