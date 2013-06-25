@@ -27,7 +27,8 @@ namespace slimhook{
 		ICLRMetaHost*			_pMetaHost;
 		ICLRRuntimeInfo*		_pRuntimeInfo;
 		ICorRuntimeHost*		_pCorRuntimeHost;
-		_TypePtr 				_spType;
+		_TypePtr 			_spType;
+		variant_t			_vtObject;
 
 
 	public:
