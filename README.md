@@ -87,3 +87,7 @@ We now will be executing "HookD3d9" inside of the other process.
 Most of this can be obtained from just looking at the code... but if there is any interest in this let me know and I will finish this doc ;)
 
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/coreyauger/slimhook/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
